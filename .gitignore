@@ -1,0 +1,10 @@
+/apostle/target/
+/apostle/Cargo.lock
+
+/behelit/target/
+/behelit/Cargo.lock
+
+/godhand/target/
+/godhand/Cargo.lock
+
+/testing
