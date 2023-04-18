@@ -1,6 +1,0 @@
-1. test port forwarding and TcpStream -- done
-RESULTS:
-    * bind the TcpListener to 0.0.0.0:PORT
-    * for testing : connect to 127.0.0.1:PORT
-    * for release : connect to IP:PORT (for some reason you can't connect locally to the external ip)
-    * explore this : https://www.noip.com/?fpr=fj2uj , https://www.noip.com/integrate/request

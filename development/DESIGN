@@ -1,0 +1,15 @@
+### behelit
+* port-forwarding with mullvad
+* link between godhand and apostle
+* hosted on a raspberry pi
+* always active
+
+### godhand
+* gui application to connect to a behelit
+* can issue commands to an active apostle
+
+### apostle
+* does not maintain a constant connection to a behelit
+  but checks in every 30 seconds or so and checks for new orders
+* has a ID
+* discrete
