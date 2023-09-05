@@ -1,0 +1,12 @@
+[package]
+name = "apostle-lib"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+dll-syringe     = {version = "0.15.*"}
+windows         = {version = "0.51.*",features = ["Win32_Foundation", "Win32_System_SystemServices"]}
+process_list    = {version = "0.2.*"}
+
+[lib]
+crate-type = ["cdylib"]

@@ -1,10 +1,15 @@
-/apostle/target/
-/apostle/Cargo.lock
-
 /behelit/target/
 /behelit/Cargo.lock
+
+/apostle/apostle-lib/target/
+/apostle/apostle-lib/Cargo.lock
+
+/apostle/apostle-bin/target/
+/apostle/apostle-bin/Cargo.lock
 
 /sovereign/target/
 /sovereign/Cargo.lock
 
 /testing
+/developpement
+
