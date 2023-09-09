@@ -7,7 +7,7 @@ use windows::Win32::{
 };
 
 /// get_clipboard attempts to collect the clipboard's content to a string
-/// returns None instead of a proper error since I don't see the point in handling a windows-related error
+/// returns None in case it fails
 pub fn get_clipboard() -> Option<String> {
     unsafe {
         use std::os::raw::c_void;

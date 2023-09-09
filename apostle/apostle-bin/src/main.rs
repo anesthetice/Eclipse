@@ -1,3 +1,4 @@
+use chacha20poly1305::{XChaCha12Poly1305, KeyInit};
 use dll_syringe::{Syringe, process::OwnedProcess};
 
 mod utils;
@@ -13,6 +14,5 @@ async fn main() {
     let syringe = Syringe::for_process(target_process);
     let injected_payload = syringe.inject("apostle_lib.dll").unwrap();
     */
-    println!("{:?}", get_clipboard());
 }
 
