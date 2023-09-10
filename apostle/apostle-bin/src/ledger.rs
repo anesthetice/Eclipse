@@ -1,9 +1,9 @@
 use serde::{Serialize, Deserialize};
-use bincode;
 use chacha20poly1305::{
     aead::{Aead, AeadCore, OsRng},
     XChaCha12Poly1305, XNonce
 };
+use time::OffsetDateTime;
 
 #[derive(Debug, PartialEq)]
 pub struct Ledger {
@@ -17,17 +17,48 @@ impl Ledger {
     pub fn decrypt(&self, cipher: &XChaCha12Poly1305) -> Self {
         Self {entries : self.entries.iter().map(|ledger_entry| {ledger_entry.decrypt(cipher)}).collect() }
     }
+    /// exports all of the timestamps in the ledger
+    /// is used essentially for the 'fetch_missing() method'
+    pub fn export_timestamps(&self) -> Vec<i128> {
+        self.entries.iter().map(|entry|{entry.timestamp}).collect()
+    }
+    /// clones and collects into a new ledger any entries that the other ledger doesn't have
+    /// it checks for missing entries by finding any entry in its ledger whose timestamp doesn't figure in the other's
+    /// returns None if nothing is missing
+    pub fn fetch_missing(&self, other: &[i128]) -> Option<Self> {
+        let missing_entries: Vec<LedgerEntry> = self.entries.iter().filter(|entry| {other.contains(&entry.timestamp)}).map(|entry| {entry.clone()}).collect();
+        Some(Self { entries: missing_entries })
+    }
+    pub fn extend(&mut self, other: Ledger) {
+        self.entries.extend(other.entries.into_iter())
+    }
+    pub fn get_last_entry_by_type(&self, data_type: &LedgerData) -> Option<&LedgerEntry> {
+        self.entries.iter().rev().find(|ledger_entry| {
+            if let Data::Decrypted { data: entry_data } = &ledger_entry.data {
+                match (entry_data, data_type) {
+                    (LedgerData::ClipboardCopy(_), LedgerData::ClipboardCopy(_)) => true,
+                    (LedgerData::EncryptionFailed, LedgerData::EncryptionFailed) => true,
+                    (LedgerData::DecryptionFailed, LedgerData::DecryptionFailed) => true,
+                    _ => false,
+                }
+            } else {false}
+        })
+    }
+    // TODO : add a method to chronologically order entries
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LedgerEntry {
-    pub timestamp: u64,
+    pub timestamp: i128,
     pub data: Data,
 }
 
 impl LedgerEntry {
-    pub fn new(timestamp: u64, data: Data) -> Self {
+    pub fn new(timestamp: i128, data: Data) -> Self {
         Self { timestamp, data }
+    }
+    pub fn new_with_current_time(data: Data) -> Self {
+        Self { timestamp: OffsetDateTime::now_utc().unix_timestamp_nanos(), data }
     }
     pub fn encrypt(&self, cipher: &XChaCha12Poly1305) -> Self {
         Self { timestamp: self.timestamp.clone(), data: self.data.encrypt(cipher) }
@@ -109,11 +140,21 @@ mod tests {
     #[test]
     fn encrypt_decrypt_ledger() {
         let ledger: Ledger = Ledger { entries: vec![
-            LedgerEntry::new(124, Data::new_decrypted(LedgerData::ClipboardCopy("clipboard copy test #1".to_string())))
-        ] };
+            LedgerEntry::new(1010101010, Data::new_decrypted(LedgerData::ClipboardCopy("clipboard copy test #1".to_string()))),
+            LedgerEntry::new_with_current_time(Data::new_decrypted(LedgerData::ClipboardCopy("lorem ipsum dolor".to_string()))),
+        ]};
         let key = XChaCha12Poly1305::generate_key(&mut OsRng);
         let cipher = XChaCha12Poly1305::new(&key);
         let other_ledger = ledger.encrypt(&cipher).decrypt(&cipher);
         assert_eq!(ledger, other_ledger)
+    }
+    #[test]
+    fn ledger_utility() {
+        let ledger: Ledger = Ledger { entries: vec![
+            LedgerEntry::new(1010101010, Data::new_decrypted(LedgerData::ClipboardCopy("clipboard copy test #1".to_string()))),
+            LedgerEntry::new_with_current_time(Data::new_decrypted(LedgerData::ClipboardCopy("lorem ipsum dolor".to_string()))),
+            LedgerEntry::new_with_current_time(Data::new_decrypted(LedgerData::DecryptionFailed)),
+        ]};
+        assert_eq!(ledger.entries[1], ledger.get_last_entry_by_type(&LedgerData::ClipboardCopy(String::new())).unwrap().clone())
     }
 }

@@ -7,6 +7,9 @@ use utils::*;
 mod ledger;
 use ledger::*;
 
+mod config;
+use config::*;
+
 #[tokio::main]
 async fn main() {
     /*
